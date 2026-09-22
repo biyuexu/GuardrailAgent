@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pre-Publication Security Assessment &mdash; Admin Task Agent</title>
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;font-family:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+ color:#1b1f23;background:#f4f6f8;line-height:1.6;font-size:15px}
+header.hero{background:linear-gradient(135deg,#0b3d63 0%,#123f5e 55%,#7a1f2b 100%);color:#fff;
+ padding:38px 28px 30px}
+header.hero .wrap{max-width:1180px;margin:0 auto}
+header.hero .eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:12px;opacity:.82;margin:0 0 8px}
+header.hero h1{margin:0 0 6px;font-size:31px;font-weight:650;line-height:1.25}
+header.hero .sub{opacity:.92;font-size:16px;margin:0 0 16px}
+header.hero .meta{display:flex;flex-wrap:wrap;gap:10px 26px;font-size:13.5px;opacity:.9}
+nav.tabs{position:sticky;top:0;z-index:100;background:#0b2a40;border-bottom:3px solid #c9932b;
+ overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+nav.tabs .wrap{max-width:1180px;margin:0 auto;display:flex}
+nav.tabs a{color:#d9e4ec;text-decoration:none;padding:13px 16px;font-size:13.5px;font-weight:500;
+ border-bottom:3px solid transparent;margin-bottom:-3px;flex:0 0 auto}
+nav.tabs a:hover{background:#134b6e;color:#fff}
+nav.tabs a:target,nav.tabs a:focus{outline:none}
+main{max-width:1180px;margin:0 auto;padding:26px 22px 70px}
+section{background:#fff;border:1px solid #dde3e9;border-radius:10px;padding:24px 26px;margin:0 0 22px;
+ box-shadow:0 1px 3px rgba(16,32,48,.05)}
+section>h2{margin:0 0 4px;font-size:22px;color:#0b3d63;font-weight:640}
+section>h2+.rule{height:3px;width:64px;background:#c9932b;border-radius:2px;margin:0 0 18px}
+h3{font-size:17px;color:#123f5e;margin:24px 0 10px}
+p{margin:0 0 12px}
+table{width:100%;border-collapse:collapse;font-size:13.7px;margin:8px 0 6px}
+th,td{border:1px solid #dfe5ea;padding:9px 11px;text-align:left;vertical-align:top}
+thead th{background:#eef3f7;color:#0b3d63;font-weight:640;font-size:13px;
+ text-transform:uppercase;letter-spacing:.04em}
+tbody tr:nth-child(even){background:#fafcfd}
+table.kv th{width:230px;background:#f6f9fb;color:#0b3d63;font-weight:600}
+.mono{font-family:'Cascadia Mono',Consolas,'Courier New',monospace;font-size:12.4px;word-break:break-word}
+td.num{text-align:center;font-weight:700;color:#0b3d63;width:44px}
+.badge{display:inline-block;padding:2.5px 9px;border-radius:11px;font-size:11.5px;font-weight:700;
+ letter-spacing:.03em;white-space:nowrap;border:1px solid transparent}
+.sev-crit{background:#7a1020;color:#fff} .sev-high{background:#c0392b;color:#fff}
+.sev-med{background:#e8a33d;color:#3a2a06} .sev-low{background:#e2e8ee;color:#2b3a47}
+.sev-info{background:#dfe9f2;color:#16405e}
+.st-fail{background:#fdeaea;color:#a01722;border-color:#f0b7bb}
+.st-warn{background:#fdf4e2;color:#8a5b09;border-color:#efd79c}
+.st-pass{background:#e7f6ec;color:#1b6b38;border-color:#b3e0c3}
+.st-insuf{background:#eceff3;color:#3c4a57;border-color:#ccd5de}
+.cards{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0 6px}
+.card{flex:1 1 150px;border:1px solid #dfe5ea;border-radius:9px;padding:14px 16px;background:#fbfdfe}
+.card .n{font-size:28px;font-weight:700;line-height:1.1;color:#0b3d63}
+.card .l{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:#5a6b7a;margin-top:3px}
+.card.c-crit .n{color:#7a1020} .card.c-high .n{color:#c0392b}
+.card.c-med .n{color:#b07d1e} .card.c-pass .n{color:#1b6b38}
+.verdict{border-radius:10px;padding:18px 20px;margin:4px 0 18px;border-left:7px solid #7a1020;
+ background:#fdf0f1}
+.verdict .vt{font-size:19px;font-weight:700;color:#7a1020;margin:0 0 6px}
+.callout{border-left:5px solid #c9932b;background:#fdf8ec;padding:13px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+.callout.danger{border-left-color:#a01722;background:#fdeef0}
+.callout.ok{border-left-color:#1b6b38;background:#eef8f1}
+ul.toc{columns:2;column-gap:32px;list-style:none;padding:0;margin:6px 0 0}
+ul.toc li{margin:0 0 7px;break-inside:avoid}
+ul.toc a{color:#12557f;text-decoration:none;font-weight:500}
+ul.toc a:hover{text-decoration:underline}
+.finding{border:1px solid #dfe5ea;border-left:6px solid #9aa7b3;border-radius:9px;margin:0 0 18px;
+ background:#fff;overflow:hidden}
+.finding.fail{border-left-color:#a01722} .finding.warn{border-left-color:#d79a22}
+.finding.pass{border-left-color:#1b6b38} .finding.insuf{border-left-color:#7c8794}
+.fhead{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:13px 17px;
+ background:#f6f9fb;border-bottom:1px solid #e6ecf1}
+.fid{font-family:'Cascadia Mono',Consolas,monospace;font-size:12.8px;font-weight:700;color:#0b3d63;
+ background:#e6eef5;padding:3px 9px;border-radius:5px}
+.fname{font-weight:640;font-size:15.5px;color:#15202b;flex:1 1 260px}
+.fbadges{display:flex;gap:7px;flex:0 0 auto}
+.fbody{padding:6px 17px 14px}
+.field{margin:11px 0}
+.field .lbl{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;
+ color:#5a6b7a;font-weight:700;margin-bottom:3px}
+.field p{margin:0}
+.field.risk p{background:#fdf0f1;border-radius:6px;padding:9px 12px}
+.field.rec p{background:#eef6fb;border-radius:6px;padding:9px 12px}
+.apath{border:1px solid #dfe5ea;border-radius:9px;padding:16px 18px;margin:0 0 18px;background:#fbfdfe}
+.apath h3{margin:0 0 12px;font-size:16.5px}
+.chain{display:flex;flex-direction:column;align-items:stretch}
+.stage{border:1px solid #d7e0e8;border-left:5px solid #12557f;border-radius:7px;background:#fff;
+ padding:9px 13px}
+.stage-n{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:#12557f;font-weight:700}
+.stage-d{font-size:13.6px;margin-top:2px}
+.stage:nth-child(9){border-left-color:#a01722}
+.arrow{text-align:center;color:#8fa0ae;font-size:13px;line-height:1;margin:5px 0}
+footer{max-width:1180px;margin:0 auto;padding:0 22px 40px;color:#65737f;font-size:12.5px}
+@media(max-width:780px){ul.toc{columns:1} header.hero h1{font-size:24px} table{font-size:12.8px}}
+</style></head><body>
+
+<header class="hero"><div class="wrap">
+  <p class="eyebrow">Guardrail Agent &mdash; Pre-Publication Security Gate</p>
+  <h1>Security Assessment: Admin Task Agent</h1>
+  <p class="sub">Evidence-based evaluation against the Guardrail Security Baseline control catalog</p>
+  <div class="meta">
+    <span><strong>Agent ID:</strong> bc065810-5151-4cd5-b180-0a912bd0615d</span>
+    <span><strong>Environment:</strong> orga49e3e3a</span>
+    <span><strong>Assessed:</strong> 2026-09-17</span>
+    <span><strong>Baseline:</strong> Guardrail Security Baseline</span>
+  </div>
+</div></header>
+
+<nav class="tabs"><div class="wrap"><a href="#summary">Executive Summary</a><a href="#overview">Agent Overview</a><a href="#posture">Security Posture</a><a href="#controls">Control Summary</a><a href="#critical">Critical &amp; High Findings</a><a href="#medium">Medium &amp; Low Findings</a><a href="#attack">Attack Paths</a><a href="#compliance">Compliance</a><a href="#governance">Governance</a><a href="#actions">Recommended Actions</a><a href="#status">Pre-Publication Status</a></div></nav>
+
+<main>
+
+<section id="summary">
+  <h2>Executive Summary</h2><div class="rule"></div>
+  <div class="verdict">
+    <p class="vt">Pre-Publication Status: NOT APPROVED &mdash; remediation required</p>
+    <p style="margin:0">Three Critical and five High findings were identified. Under the baseline's
+    pre-publication gate, Critical findings require remediation before publication unless an explicitly authorized
+    exception exists, and High findings require remediation or documented security approval.</p>
+  </div>
+  <p>The Admin Task Agent is a published, Teams-surfaced Copilot Studio agent that combines administrative write
+  capability against Microsoft Entra ID, application-level Microsoft Graph read access, Office 365 mailbox
+  management, a custom billing MCP server, SharePoint search, and three connected downstream agents &mdash; one of
+  which ingests content from a public internet site and another of which runs autonomously on file upload and sends
+  email without human review.</p>
+  <p>The agent does several things well: authentication is <strong>Integrated</strong> with an authentication trigger
+  of <strong>Always</strong>, content moderation is set to <strong>High</strong>, <code>useModelKnowledge</code> is
+  disabled, ownership is clearly attributable, and the SharePoint project-search flow correctly uses
+  <em>invoker</em> identity so results are trimmed to the signed-in user's permissions. These are genuine strengths
+  and they meaningfully limit several attack paths.</p>
+  <div class="callout danger"><strong>Most urgent issue:</strong> a plaintext Microsoft Graph application client
+  secret is stored directly in the definition of the &ldquo;get assigned licenses&rdquo; Power Automate flow
+  (workflow <span class="mono">4b67d3a5-7469-f011-bec1-7c1e520b6058</span>). This credential is exploitable
+  <em>without interacting with the agent at all</em>, is not bound to any user session, and survives every other
+  remediation. It should be rotated first. The secret value is deliberately not reproduced in this report.</div>
+  <p>The dominant structural weakness is that untrusted, externally-authored content and privileged,
+  state-changing tools share a single reasoning context with no enforced authorization boundary between them.
+  <code>GenerativeActionsEnabled</code> is true, the Entra group-membership parameter is an
+  <code>AutomaticTaskInput</code> supplied by the model with no confirmation, and four connections execute under the
+  <strong>maker</strong> (a tenant administrator) rather than the invoking user. Individually these are control
+  failures; together they form the chained attack paths set out in this report.</p>
+  <h3>Table of Contents</h3>
+  <ul class="toc"><li><a href="#summary">Executive Summary</a></li><li><a href="#overview">Agent Overview</a></li><li><a href="#posture">Security Posture</a></li><li><a href="#controls">Control Summary</a></li><li><a href="#critical">Critical &amp; High Findings</a></li><li><a href="#medium">Medium &amp; Low Findings</a></li><li><a href="#attack">Attack Paths</a></li><li><a href="#compliance">Compliance</a></li><li><a href="#governance">Governance</a></li><li><a href="#actions">Recommended Actions</a></li><li><a href="#status">Pre-Publication Status</a></li></ul>
+</section>
+
+<section id="overview">
+  <h2>Agent Overview</h2><div class="rule"></div>
+  <table class="kv"><tbody><tr><th>Agent Name</th><td>Admin Task Agent</td></tr><tr><th>Schema Name</th><td>copilot_adobeAgent</td></tr><tr><th>Agent ID</th><td>bc065810-5151-4cd5-b180-0a912bd0615d</td></tr><tr><th>Environment / Business Unit</th><td>orga49e3e3a (Business Unit d98edf98-dd8b-f111-ab0f-70a8a5b2d5ff)</td></tr><tr><th>Owner</th><td>MOD Administrator (systemuser 0a7449d3-6b8c-f111-ab0e-6045bd09cc66)</td></tr><tr><th>Created</th><td>2026-09-17 22:29:05 UTC</td></tr><tr><th>Published</th><td>2026-09-17 22:32:58 UTC (publish operation 22:32:22 -&gt; 22:33:01, status Succeeded)</td></tr><tr><th>Last Modified</th><td>2026-09-17 22:48:12 UTC by &#x27;# Microsoft Copilot Studio&#x27;</td></tr><tr><th>State</th><td>Active / Provisioned / Component state: Published</td></tr><tr><th>Authentication</th><td>Integrated (authenticationmode 2), Authentication trigger: Always (1)</td></tr><tr><th>Access Control</th><td>Group membership (accesscontrolpolicy 2) - authorizedsecuritygroupids is EMPTY</td></tr><tr><th>Model</th><td>GPT41</td></tr><tr><th>Solution / ALM</th><td>default-2.1.0, Unmanaged, solutionid fd140aae-4df4-11dd-bd17-0019b9312238 (Default solution)</td></tr><tr><th>Application Identity</th><td>Bot registration application ID d3b7f5d7-2041-48c9-869b-e17a482aeacb (isAppAvailableInTenant: true)</td></tr><tr><th>Channel</th><td>Teams application manifest v1.0.0 present</td></tr><tr><th>AI / Generative Settings</th><td>GenerativeActionsEnabled: true | useModelKnowledge: false | isFileAnalysisEnabled: true | isSemanticSearchEnabled: true | contentModeration: High | optInUseLatestModels: false | recognizer: GenerativeAIRecognizer</td></tr><tr><th>Component Inventory</th><td>24 Topics (V2), 1 Custom GPT, 11 Test Cases, 0 Knowledge Source components</td></tr></tbody></table>
+  <h3>Observed Capability Inventory</h3>
+  <p>The following capabilities were enumerated from the agent's actual Dataverse configuration &mdash; topics,
+  actions, flow definitions, connection references and connected-agent records &mdash; not from its instruction text.</p>
+  <table><thead><tr><th>Capability</th><th>Type</th><th>Identifier</th><th>Observed Configuration</th>
+  <th>Execution Identity</th></tr></thead><tbody><tr><td><strong>get assigned licenses</strong></td><td>Power Automate flow</td><td class='mono'>4b67d3a5-7469-f011-bec1-7c1e520b6058</td><td>HTTP GET https://graph.microsoft.com/v1.0/users/{text}?$select=assignedLicenses using ActiveDirectoryOAuth (tenant 1a2d00d3-eb2f-45c4-9a7f-7c8303e8401c, clientId d3abaf28-0cbf-48a9-a4e1-154bf77ab9dd) with a hard-coded client secret literal. Default input =System.User.PrincipalName.</td><td>Application (app-only) identity</td></tr><tr><td><strong>add user to security group</strong></td><td>Power Automate flow</td><td class='mono'>0909de90-3472-f011-b4cb-7c1e520b6058</td><td>Entra ID AddUserToGroup (shared_azuread, runtimeSource: embedded) preceded by Office365Users UserProfile_V2. Group object ID hard-coded to 42d2fdd2-f3de-4988-b61e-d40e578b8bc2; &#x27;email&#x27; is an AutomaticTaskInput (model-supplied). No approval or confirmation step.</td><td>Embedded (maker) connection</td></tr><tr><td><strong>search project details</strong></td><td>Power Automate flow</td><td class='mono'>0c5fb740-af73-f011-b4cb-7c1e520b6058</td><td>SharePoint HttpRequest GET _api/search/query?querytext=&#x27;{text}&#x27;&amp;$top=3 against https://m365cpi06134360.sharepoint.com. Search string extracted from the user prompt by the model.</td><td>Invoker (runs as signed-in user)</td></tr><tr><td><strong>Office 365 Outlook - Email Management MCP Server</strong></td><td>MCP server (shared_office365)</td><td class='mono'>operationId mcp_EmailsManagement</td><td>Mailbox management MCP surface: &#x27;This MCP server manages email messages from your Office 365 account&#x27;. No recipient allow-list or scope constraint recorded.</td><td>connectionProperties mode: Maker</td></tr><tr><td><strong>billing MCP</strong></td><td>MCP server (custom connector)</td><td class='mono'>customconnectorid af300692-6839-49af-b4b0-f58c76e8267c</td><td>operationId InvokeServer with triggerCondition: true (always eligible). No modelDescription, no publisher, no documented tool surface. Instructions direct the agent to &#x27;call as many of its tools as needed&#x27;.</td><td>connectionProperties mode: Maker</td></tr><tr><td><strong>Microsoft Learn Docs MCP Server</strong></td><td>MCP server (shared_microsoftlearndocsmcpserver)</td><td class='mono'>operationId microsoft_docs_search</td><td>Public Microsoft Learn documentation search. Returns external, non-organizational content into context.</td><td>connectionProperties mode: Maker</td></tr><tr><td><strong>HR Agent</strong></td><td>Connected agent (A2A)</td><td class='mono'>copilot_hrAgent / botid 7f11fe37-4798-4e6e-b8e7-bd32b93d44e0</td><td>&#x27;HR Recruiting Agent&#x27;. Has external trigger &#x27;When a file is created&#x27; (OneDrive for Business, flow 134b8eda-e277-f011-b4cb-7c1e520b6058), Office 365 Outlook Send an email (V2) in Maker mode with To fixed to admin@M365CPI06134360.onmicrosoft.com, SharePoint knowledge source https://m365cpi06134360.sharepoint.com/Shared%20Documents, and a job-description file attachment. Model: Sonnet46.</td><td>historyType: ConversationHistory (full history passed)</td></tr><tr><td><strong>SPO site metadata M365 Agent</strong></td><td>Connected agent (A2A)</td><td class='mono'>copilot_spoAgent / botid 556f1f40-9b37-45ab-b764-a2de0fb4433a</td><td>Registered in Dataverse as &#x27;Site metadata and Dataverse M365 Agent&#x27;. Its authenticationtrigger is &#x27;As Needed&#x27; (0), weaker than the parent&#x27;s &#x27;Always&#x27;. No botcomponent rows are retrievable for this agent, so its tool surface cannot be enumerated from Dataverse.</td><td>historyType: ConversationHistory (full history passed)</td></tr><tr><td><strong>Trimble Spectrum</strong></td><td>Connected agent (A2A)</td><td class='mono'>copilot_trimbleSpectrum / botid f70ab29c-8dcd-4a50-bf37-51383a6f3d1f</td><td>Knowledge source is the PUBLIC website https://help.trimble.com/en/spectrum (PublicSiteSearchSource) and it uses a &#x27;get detailed steps from a link&#x27; action that fetches URL content. Covers destructive admin procedures (create company, purge company data).</td><td>historyType: ConversationHistory (full history passed)</td></tr></tbody></table>
+  <div class="callout"><strong>Also observed:</strong> one topic named &ldquo;test&rdquo; (a CSAT rating adaptive
+  card) and one Inactive &ldquo;Service now catalog&rdquo; topic remain in the published configuration. The agent has
+  <strong>zero</strong> Knowledge Source components, yet the &ldquo;Conversational boosting&rdquo;
+  <code>SearchAndSummarizeContent</code> topic is Active and the instructions reference a knowledge source named
+  <code>m365_skus.xlsx</code> that is not attached.</div>
+</section>
+
+<section id="posture">
+  <h2>Security Posture</h2><div class="rule"></div>
+  <div class="cards">
+    <div class="card"><div class="n">17</div><div class="l">Controls Evaluated</div></div>
+    <div class="card c-crit"><div class="n">3</div><div class="l">Critical</div></div>
+    <div class="card c-high"><div class="n">5</div><div class="l">High</div></div>
+    <div class="card c-med"><div class="n">8</div><div class="l">Medium</div></div>
+    <div class="card c-pass"><div class="n">1</div><div class="l">Passed</div></div>
+  </div>
+  <div class="cards">
+    <div class="card"><div class="n">11</div><div class="l">Fail</div></div>
+    <div class="card"><div class="n">4</div><div class="l">Warning</div></div>
+    <div class="card"><div class="n">1</div><div class="l">Insufficient Evidence</div></div>
+    <div class="card"><div class="n">9</div><div class="l">Capabilities Inventoried</div></div>
+  </div>
+  <h3>Strengths Confirmed by Evidence</h3>
+  <div class="callout ok"><ul style="margin:0;padding-left:19px">
+    <li><strong>Integrated authentication with trigger &ldquo;Always&rdquo;</strong> &mdash; every user is
+        authenticated before the agent responds; the agent is not anonymously reachable.</li>
+    <li><strong>Content moderation set to High</strong> and <code>useModelKnowledge: false</code>, and
+        <code>optInUseLatestModels: false</code> &mdash; deliberate, conservative model configuration.</li>
+    <li><strong>SharePoint project search uses <code>runtimeSource: invoker</code></strong> &mdash; results are
+        trimmed to the signed-in user's own permissions, preventing cross-user disclosure on that path.</li>
+    <li><strong>The HR Agent's email recipient is pinned</strong> to a fixed <code>ManualTaskInput</code> address,
+        which prevents free redirection of automated mail to an arbitrary external destination.</li>
+    <li><strong>Ownership and agent identity are attributable</strong> &mdash; IAM-001 and CFG-001 pass.</li>
+  </ul></div>
+  <h3>Risk Context</h3>
+  <p>Severity throughout this report is assessed as
+  <em>Privilege &times; Data Sensitivity &times; Exposure &times; Action Impact &times; Blast Radius</em>. This agent
+  scores high on every factor: it holds directory-write privilege, reaches personal and commercially sensitive data,
+  is exposed through Teams to a population that could not be confirmed, performs irreversible state changes,
+  and operates under a tenant-administrator identity &mdash; making the blast radius tenant-wide.</p>
+</section>
+
+<section id="controls">
+  <h2>Control Summary</h2><div class="rule"></div>
+  <p>Every control below was evaluated as
+  <em>Control &rarr; Required Evidence &rarr; Observed Configuration &rarr; Evaluation &rarr; Finding</em>.
+  Where required evidence could not be established it is reported as INSUFFICIENT EVIDENCE rather than as a failure.</p>
+  <table><thead><tr><th>Control ID</th><th>Control</th><th>Status</th><th>Severity</th><th>Confidence</th></tr>
+  </thead><tbody><tr><td class='mono'>SEC-001 / DATA-006</td><td>Secrets Must Not Exist in Instructions / Embedded in Agent Content</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-crit">Critical</span></td><td>High</td></tr><tr><td class='mono'>IAM-004 / DATA-003</td><td>Privileged Access Requires Justification / Cross-User Data Access Must Be Authorized</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-high">High</span></td><td>High</td></tr><tr><td class='mono'>IAM-005 / HUMAN-001 / HUMAN-002</td><td>High-Impact Actions Require Authorization / Human Oversight</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-high">High</span></td><td>High</td></tr><tr><td class='mono'>ATT-001 / PI-002 / PI-004</td><td>High-Risk Capability Combinations - Untrusted Content plus Privileged Tools</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-crit">Critical</span></td><td>High</td></tr><tr><td class='mono'>ATT-001 / PI-002 / EXT-001</td><td>Autonomous Trigger plus Untrusted File plus Outbound Email (via HR Agent)</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-crit">Critical</span></td><td>High</td></tr><tr><td class='mono'>IAM-007 / SEC-004</td><td>Shared Privileged Identities Must Be Restricted / Credential Scope Must Be Limited</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-high">High</span></td><td>High</td></tr><tr><td class='mono'>IAM-006 / DEF-001</td><td>Broad User Access Must Be Justified / Secure Defaults</td><td><span class="badge st-warn">WARNING</span></td><td><span class="badge sev-high">High</span></td><td>Medium</td></tr><tr><td class='mono'>TOOL-005 / KNOW-002</td><td>External Tools Must Have Established Trust</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-high">High</span></td><td>Medium</td></tr><tr><td class='mono'>A2A-004 / A2A-003</td><td>Sensitive Data Passed Between Agents Must Be Controlled</td><td><span class="badge st-warn">WARNING</span></td><td><span class="badge sev-med">Medium</span></td><td>Medium</td></tr><tr><td class='mono'>TOOL-004</td><td>Tool Parameters Must Be Constrained</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-med">Medium</span></td><td>High</td></tr><tr><td class='mono'>INST-001 / INST-004</td><td>Security Restrictions Must Not Rely Solely on Instructions / Purpose Must Match Capability</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-med">Medium</span></td><td>High</td></tr><tr><td class='mono'>OUT-004</td><td>High-Risk Outputs Require Appropriate Controls</td><td><span class="badge st-warn">WARNING</span></td><td><span class="badge sev-med">Medium</span></td><td>Medium</td></tr><tr><td class='mono'>KNOW-003 / KNOW-005</td><td>User-Controlled Knowledge Must Be Treated as Untrusted</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-med">Medium</span></td><td>Medium</td></tr><tr><td class='mono'>CFG-002 / CFG-003</td><td>Security-Sensitive Changes Must Be Controlled / Material Changes Trigger Reassessment</td><td><span class="badge st-fail">FAIL</span></td><td><span class="badge sev-med">Medium</span></td><td>Medium</td></tr><tr><td class='mono'>MON-001 / MON-002</td><td>Security-Relevant Actions Must Be Observable and Attributable</td><td><span class="badge st-insuf">INSUFFICIENT EVIDENCE</span></td><td><span class="badge sev-med">Medium</span></td><td>High</td></tr><tr><td class='mono'>CFG-001 / IAM-001</td><td>Agent Configuration Must Have an Identifiable Owner / Agent Identity Identifiable</td><td><span class="badge st-pass">PASS</span></td><td><span class="badge sev-info">Informational</span></td><td>High</td></tr><tr><td class='mono'>DATA-005 / EXT-002</td><td>External Data Transfer Must Be Controlled</td><td><span class="badge st-warn">WARNING</span></td><td><span class="badge sev-med">Medium</span></td><td>Medium</td></tr></tbody></table>
+</section>
+
+<section id="critical">
+  <h2>Critical &amp; High Findings</h2><div class="rule"></div>
+  
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">SEC-001 / DATA-006</div>
+    <div class="fname">Secrets Must Not Exist in Instructions / Embedded in Agent Content</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-crit">Critical</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>Flow &#x27;get assigned licenses&#x27; (workflowid 4b67d3a5-7469-f011-bec1-7c1e520b6058), action &#x27;HTTP&#x27;, contains an inline ActiveDirectoryOAuth block with authority tenant 1a2d00d3-eb2f-45c4-9a7f-7c8303e8401c, clientId d3abaf28-0cbf-48a9-a4e1-154bf77ab9dd, audience https://graph.microsoft.com, and a plaintext 40-character client secret literal beginning &#x27;_Bi8Q~&#x27; stored directly in the workflow clientdata. The flow is Activated (statecode 1 / statuscode 2 Activated).</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Credentials must never be stored in agent instructions, topics, knowledge, or flow definitions. Authentication must use an approved credential-management mechanism (managed identity, Key Vault reference, or a connection reference) per SEC-003 and SEC-004.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>The secret is readable by anyone who can read the workflow definition in this environment - which includes every maker with access to the Default solution, anyone who can export the unmanaged solution, and any identity with Dataverse read on the workflow table. Because the credential is an application (app-only) Microsoft Graph credential, it is not bound to the invoking user and does not expire with a session.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Full compromise of the registered application&#x27;s Microsoft Graph permissions, independent of the agent. An attacker holding this secret can call Graph directly outside all Copilot Studio controls, with no attribution to an end user. This is a standing tenant-level credential exposure, not merely an agent weakness.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>1) Treat the secret as compromised and rotate/revoke it immediately on app registration d3abaf28-0cbf-48a9-a4e1-154bf77ab9dd. 2) Remove the inline &#x27;authentication&#x27; block from the HTTP action. 3) Replace with a Key Vault reference or an Entra ID connection reference, or replace the raw HTTP call with the shared_azuread / shared_office365users connector already present in the environment. 4) Review Graph sign-in and audit logs for that appId for use from unexpected IPs since 2026-09-17. 5) Review the app registration&#x27;s granted Graph application permissions and reduce to User.Read.All or narrower.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Re-export the flow definition and confirm no literal secret string remains in clientdata; confirm the old secret no longer authenticates against Graph; re-run SEC-001, SEC-003, SEC-004 and DATA-006.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">IAM-004 / DATA-003</div>
+    <div class="fname">Privileged Access Requires Justification / Cross-User Data Access Must Be Authorized</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-high">High</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>The same flow calls Graph with an application identity, not the delegated user. The URI is /v1.0/users/@{triggerBody()?[&#x27;text&#x27;]}?$select=assignedLicenses. The &#x27;text&#x27; input is declared as a ManualTaskInput defaulted to =System.User.PrincipalName, but it is a free-form string parameter on a Skills-kind Request trigger, not a server-enforced binding.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>License lookups for a self-service agent should execute under the invoking user&#x27;s delegated context, or the parameter must be enforced server-side to the caller&#x27;s UPN so one user cannot query another user&#x27;s record.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>App-only Graph authorization ignores the caller&#x27;s own permissions. The conversation starter &#x27;what are the licenses assigned to me?&#x27; reflects self-service intent, but the technical configuration permits lookup of any UPN in the tenant. The restriction to &#x27;me&#x27; exists only as a default value and as natural-language instruction text, which INST-001 explicitly prohibits as a sole authorization boundary.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Any user who can reach the agent can potentially enumerate license assignment - and therefore product entitlement, role and staffing signal - for arbitrary employees. Combined with the email capability this becomes a directory-reconnaissance and exfiltration primitive.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Switch the flow to a delegated Entra ID / Office 365 Users connection so Graph enforces the caller&#x27;s rights, or hard-bind the UPN server-side inside the flow (ignore the trigger input and resolve the caller identity in the flow itself). Remove the free-form &#x27;text&#x27; parameter from the trigger schema.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Attempt a license lookup for a UPN other than the signed-in user and confirm it is denied; re-run IAM-004, IAM-009 and DATA-003.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">IAM-005 / HUMAN-001 / HUMAN-002</div>
+    <div class="fname">High-Impact Actions Require Authorization / Human Oversight</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-high">High</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>Action &#x27;add user to security group&#x27; (copilot_adobeAgent.action.addusertosecuritygroup) invokes flow 0909de90-3472-f011-b4cb-7c1e520b6058, which performs shared_azuread AddUserToGroup. The group is a ManualTaskInput pinned to 42d2fdd2-f3de-4988-b61e-d40e578b8bc2, but the member &#x27;email&#x27; is declared kind: AutomaticTaskInput - i.e. the model supplies it without user confirmation. The topic contains no confirmation prompt, no approval node, and no allow-list. A conversation starter ships this capability to every user: &#x27;add admin@M365CPI06134360.onmicrosoft.com to the security group&#x27;.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Modification of Entra ID group membership is a security-control change. Per IAM-005, IAM-010 and HUMAN-002 it requires an authorization mechanism enforced outside the model, and approval must occur before the action.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>Entra security groups commonly gate application access, Conditional Access policy, licensing, SharePoint permissions and - relevant here - Copilot Studio agent access itself, since every agent in this environment uses accesscontrolpolicy &#x27;Group membership&#x27;. Because the parameter is an AutomaticTaskInput, any text that reaches the model&#x27;s context and is interpreted as an instruction can determine who is added. GenerativeActionsEnabled is true, so the orchestrator may select this tool without an explicit deterministic topic trigger.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Unauthorized privilege escalation. An attacker who can influence the model&#x27;s context can add an account they control to a privileged group, gaining whatever access that group confers, with the change attributed to the maker&#x27;s embedded connection rather than to the attacker.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>1) Remove this action from the agent unless group administration is a confirmed requirement. 2) If retained: change &#x27;email&#x27; from AutomaticTaskInput to an explicit user-confirmed input; add an explicit confirmation/approval step before the AddUserToGroup call; restrict the flow to an allow-list of permitted target groups and permitted requestors; and switch the azuread connection from embedded to invoker so the change is authorized by the requesting user&#x27;s own Entra rights. 3) Enable Entra ID group-membership change auditing and alerting for group 42d2fdd2-f3de-4988-b61e-d40e578b8bc2.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Attempt the action as a non-privileged user and confirm it is blocked or requires explicit approval; confirm the Entra audit log attributes the change to a named requestor; re-run IAM-005, IAM-010, HUMAN-001 and HUMAN-002.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">ATT-001 / PI-002 / PI-004</div>
+    <div class="fname">High-Risk Capability Combinations - Untrusted Content plus Privileged Tools</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-crit">Critical</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>The agent simultaneously (a) ingests untrusted external content - Trimble Spectrum connected agent whose knowledge source is the public site https://help.trimble.com/en/spectrum plus a URL-fetch action, Microsoft Learn Docs MCP, SharePoint search results, and isFileAnalysisEnabled: true; and (b) holds privileged capability - Entra ID group write, app-only Graph read, and Office 365 mailbox management in Maker mode. GenerativeActionsEnabled is true and all three connected agents receive historyType: ConversationHistory. No content-trust separation is configured.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Per PI-002 and PI-004, retrieved content must not be able to authorize privileged tool calls, and external content must not outrank trusted instructions. Per ATT-001, the combination must be evaluated as a single risk, not as separate controls.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>This is the canonical indirect prompt injection chain: attacker-controlled content -&gt; retrieval -&gt; context injection -&gt; agent reasoning -&gt; tool invocation. The injected text does not need to come from the user; a poisoned page, a poisoned SharePoint document in the searched library, or a crafted file uploaded for analysis is sufficient. Content moderation is set to High, which filters harmful content but is not an injection control and does not constrain tool authorization.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>A single piece of attacker-authored content could cause the agent to add an attacker-controlled account to the Entra security group, read or forward mailbox content via the Email Management MCP, and enumerate directory license data - all executing under the maker&#x27;s privileged connections.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Break the chain rather than hardening one link: (1) remove the Entra group-write action from an agent that also ingests external content, or isolate it into a separate, tightly-scoped agent with no external knowledge; (2) require explicit human approval before any group change or outbound email; (3) move Maker-mode connections to invoker/user authentication so injected instructions cannot exceed the invoking user&#x27;s own rights; (4) constrain the Trimble URL-fetch action to an allow-list of help.trimble.com paths.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Conduct an injection test: place benign marker instructions in a document in the searched SharePoint library and in a file submitted for analysis, then confirm the agent does not invoke the group-add or email tools as a result. Re-run PI-002, PI-003, PI-004 and ATT-001.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">ATT-001 / PI-002 / EXT-001</div>
+    <div class="fname">Autonomous Trigger plus Untrusted File plus Outbound Email (via HR Agent)</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-crit">Critical</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>Connected agent HR Recruiting Agent (copilot_hrAgent) has an External Trigger component &#x27;When a file is created&#x27; bound to OneDrive for Business (flow 134b8eda-e277-f011-b4cb-7c1e520b6058). Its instructions direct it to read the uploaded resume, judge the candidate, and then &#x27;Compose and Send an Email&#x27; using Office 365 Outlook Send an email (V2). That connector runs with connectionProperties mode: Maker. The email body is entirely model-generated from the uploaded file&#x27;s content.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Per PI-002, retrieved content must not independently authorize external communications; per HUMAN-002, approval must precede the consequential action. An autonomous agent that processes untrusted files and then emails must have an authorization gate between ingestion and transmission.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>The file is uploaded by a third party (a candidate) and is therefore fully attacker-controlled. The trigger fires without any human in the loop, and the outbound send occurs in the same uninterrupted turn. Mitigating factor: the &#x27;To&#x27; address is a ManualTaskInput fixed to admin@M365CPI06134360.onmicrosoft.com, so the recipient cannot be freely redirected by the model - this materially limits, but does not eliminate, the exposure, because the body is unconstrained and the agent also holds a SharePoint knowledge source over https://m365cpi06134360.sharepoint.com/Shared%20Documents.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>A crafted resume can drive the content of an automatically-sent email from the maker&#x27;s mailbox and can attempt to steer the agent into surfacing content from the SharePoint document library into that message. Because the Admin Task Agent invokes this agent with full ConversationHistory, injected instructions can also propagate back toward the parent&#x27;s privileged tools.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>1) Insert a human approval step between candidate analysis and email send, so a reviewer sees the draft before transmission (HUMAN-002/HUMAN-003). 2) Keep the fixed recipient and additionally constrain the email body to a fixed template with bounded fields rather than free model output. 3) Switch the Outlook connection from Maker to invoker, or to a dedicated service identity with send-only scope. 4) Narrow the SharePoint knowledge source from the root /Shared%20Documents library to a dedicated recruiting folder.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Upload a test file containing benign marker instructions, confirm no email is sent without approval and that the marker text does not appear in any output; re-run PI-002, EXT-001, HUMAN-001 and HUMAN-002.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">IAM-007 / SEC-004</div>
+    <div class="fname">Shared Privileged Identities Must Be Restricted / Credential Scope Must Be Limited</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-high">High</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>Four connections execute under the maker rather than the end user: Office 365 Outlook Email Management MCP (mode: Maker), billing MCP (mode: Maker), Microsoft Learn Docs MCP (mode: Maker), and - downstream - the HR Agent&#x27;s Send an email V2 (mode: Maker). The &#x27;add user to security group&#x27; flow likewise uses runtimeSource: &#x27;embedded&#x27; for both shared_azuread and shared_office365users. The agent owner and creator is MOD Administrator (0a7449d3-6b8c-f111-ab0e-6045bd09cc66).</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Privileged agent operations should run under an attributable application/service identity or an appropriately scoped delegated identity, not a shared maker account (IAM-007), and credentials should carry only the permissions the integration requires (SEC-004).</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>This is a confused-deputy configuration. Every user of the agent inherits the maker&#x27;s effective rights for these operations. Because the maker is a tenant administrator account, the blast radius is the administrator&#x27;s entire mailbox and directory authority. It also defeats attribution: MON-002 requires determining which identity executed an action, but the connector logs will show the maker for every invocation regardless of who asked.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Privilege escalation for every agent user, and loss of per-user accountability for mailbox access, license enumeration and group changes.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Change the Office 365 Outlook, billing MCP and Microsoft Learn connections to end-user (invoker) authentication. Where a service identity is genuinely required, create a dedicated, non-administrative service principal scoped only to the needed operations, and re-own the agent to that purpose-built identity rather than the tenant administrator account.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Re-inspect each action&#x27;s connectionProperties and confirm mode is no longer Maker; confirm an end user cannot reach mailbox content they do not own; re-run IAM-007, IAM-009, SEC-004 and MON-002.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding warn">
+  <div class="fhead">
+    <div class="fid">IAM-006 / DEF-001</div>
+    <div class="fname">Broad User Access Must Be Justified / Secure Defaults</div>
+    <div class="fbadges"><span class="badge st-warn">WARNING</span> <span class="badge sev-high">High</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>The bot record sets accesscontrolpolicy = 2 (&#x27;Group membership&#x27;), but the authorizedsecuritygroupids attribute returns no value. The agent is published (publishedon 2026-09-17 22:32:58), Active/Provisioned, has a Teams application manifest (v1.0.0), and authenticationmode is Integrated with authenticationtrigger Always.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>An agent holding Entra ID write, app-only Graph read and mailbox management must have its audience explicitly restricted to a named, justified security group, and the restrictive option must be the configured default.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>Integrated authentication with &#x27;Always&#x27; trigger is a genuine strength - every user is authenticated before the agent responds, and the agent is not anonymously reachable. However, an access policy of &#x27;Group membership&#x27; with no group IDs recorded is an internally inconsistent state: the intended restriction is declared but the scoping evidence is absent. This is reported as a WARNING rather than a FAIL because the authoritative Teams/Copilot Studio sharing roster is not retrievable from Dataverse and missing evidence must not be treated as failure.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>If no group is in fact bound, the population able to invoke Entra group modification and mailbox tooling is far wider than the agent&#x27;s administrative purpose warrants, which is exactly the &#x27;Broad users + administrative permissions&#x27; combination ATT-001 requires to be escalated.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Confirm in Copilot Studio (Settings &gt; Security &gt; Authentication / Sharing) which security groups are bound. If none, bind a named administrator group now and populate authorizedsecuritygroupids before publication. Document the justification for the chosen audience.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Re-query the bot record and confirm authorizedsecuritygroupids is populated; verify a user outside that group cannot invoke the agent; re-run IAM-006 and DEF-001.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>Medium</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">TOOL-005 / KNOW-002</div>
+    <div class="fname">External Tools Must Have Established Trust</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-high">High</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>The &#x27;billing MCP&#x27; action targets custom connector af300692-6839-49af-b4b0-f58c76e8267c (shared_copilot-5fbilling-20mcp-5f7af054f600195485) with operationId InvokeServer and triggerCondition: true. The component carries no modelDescription, no publisher, no documented tool inventory and no stated data scope. The agent instructions state: &#x27;When asked about billing related questions, use the &quot;billing MCP&quot; MCP server and call as many of its tools as needed to provide a thorough answer.&#x27;</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Third-party tools, plugins and MCP servers must have an identifiable owner, source and authorization context, and each connector must have a defined, legitimate purpose (TOOL-001, TOOL-005).</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>An MCP server exposes a tool list that the server itself controls and can change at any time without a corresponding change to this agent. Combined with an instruction that explicitly encourages calling as many tools as possible and a trigger condition that is always true, the agent delegates open-ended, undeclared capability to an endpoint whose ownership is not established in the available evidence. Billing data is also commercially sensitive.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Undeclared and silently-mutable capability, potential sensitive billing data disclosure to an unverified endpoint, and an unbounded tool surface that cannot be reviewed before publication.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Identify and document the publisher, host endpoint, authentication method and complete tool inventory of the billing MCP server before publication. Remove the &#x27;call as many of its tools as needed&#x27; instruction and name the specific tools permitted. Replace triggerCondition: true with a scoped condition. Confirm the endpoint is covered by a DLP policy and an approved-integration record.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Produce the connector&#x27;s documented tool list and owner; confirm the agent invokes only named tools; re-run TOOL-001, TOOL-005 and KNOW-002.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>Medium</p></div>
+  </div>
+</div>
+</section>
+
+<section id="medium">
+  <h2>Medium &amp; Low Findings</h2><div class="rule"></div>
+  
+<div class="finding warn">
+  <div class="fhead">
+    <div class="fid">A2A-004 / A2A-003</div>
+    <div class="fname">Sensitive Data Passed Between Agents Must Be Controlled</div>
+    <div class="fbadges"><span class="badge st-warn">WARNING</span> <span class="badge sev-med">Medium</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>All three connected agents - HR Agent, SPO site metadata M365 Agent and Trimble Spectrum - are invoked with historyType: ConversationHistory, meaning the full conversation is passed downstream. The SPO agent (copilot_spoAgent, &#x27;Site metadata and Dataverse M365 Agent&#x27;) has authenticationtrigger &#x27;As Needed&#x27; (0), weaker than the parent&#x27;s &#x27;Always&#x27; (1).</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Data exchanged between agents must respect the originating user&#x27;s and agent&#x27;s authorization boundaries, and chaining must not create unauthorized privilege escalation (A2A-003, A2A-004).</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>Passing full conversation history to three separate agents - including one that reaches a public external website and one that performs employment screening - widens the disclosure surface beyond what each downstream agent needs. The weaker downstream authentication trigger means the parent&#x27;s &#x27;Always authenticate&#x27; guarantee is not uniformly preserved across the trust boundary. The SPO agent&#x27;s own tool surface could not be enumerated from Dataverse, so its effective downstream privilege is not fully established.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Sensitive content from an administrative conversation (UPNs, license data, mailbox content, project records) may be disclosed to agents that have no need for it, and injected instructions can travel between agents through the shared history.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Switch downstream invocations from ConversationHistory to a scoped input contract that passes only the parameters each agent needs. Align the SPO agent&#x27;s authenticationtrigger to &#x27;Always&#x27;. Obtain and document the SPO agent&#x27;s tool and permission inventory before publication.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Confirm each connected agent receives only scoped inputs; confirm the SPO agent&#x27;s authenticationtrigger is &#x27;Always&#x27;; re-run A2A-002, A2A-003 and A2A-004.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>Medium</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">TOOL-004</div>
+    <div class="fname">Tool Parameters Must Be Constrained</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-med">Medium</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>Flow &#x27;search project details&#x27; (0c5fb740-af73-f011-b4cb-7c1e520b6058) interpolates a model-extracted string directly into a SharePoint search URL: _api/search/query?querytext=&#x27;@{triggerBody()?[&#x27;text&#x27;]}&#x27;&amp;$top=3 against https://m365cpi06134360.sharepoint.com. The action&#x27;s description instructs the model to &#x27;extract the searchString that can be queried against a sharepoint online list&#x27;. No validation, escaping or allow-list is present.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>User-controlled or externally sourced values must not freely determine tool parameters without validation.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>An unescaped value inside a KQL querytext parameter permits query manipulation - for example breaking out of the intended scope with additional KQL operators or appending further query-string parameters. Significant mitigating factor: this connection uses runtimeSource &#x27;invoker&#x27;, so SharePoint search trims results to what the signed-in user is already permitted to see. That caps this at query manipulation within the user&#x27;s own entitlement rather than cross-user disclosure, which is why severity is Medium rather than High.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>A user or injected instruction can broaden the search beyond the intended project list, surfacing unrelated content the user happens to have access to, and the results then enter the model context where they can influence subsequent privileged tool calls.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Validate and escape the search string (strip quote characters, KQL operators and &#x27;&amp;&#x27;), constrain the query with a server-side path or list filter so it cannot leave the intended project list, and keep runtimeSource as &#x27;invoker&#x27;.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Submit a search string containing quote and KQL operator characters and confirm it is rejected or neutralised and that results remain confined to the project list; re-run TOOL-004.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">INST-001 / INST-004</div>
+    <div class="fname">Security Restrictions Must Not Rely Solely on Instructions / Purpose Must Match Capability</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-med">Medium</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>The agent instructions carry security-relevant behaviour purely as prose: &#x27;When answering, only use product names and do not show the sku ids.&#x27; The instructions also reference a knowledge source that does not exist - the &#x27;get assigned licenses&#x27; action description says &#x27;Translate the sku ids to product names using the knowledge source m365_skus.xlsx&#x27;, yet the agent has zero Knowledge Source components (componenttype 16 count = 0); the SKU mapping is instead pasted inline into the instructions covering only 8 SKUs.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Critical boundaries must be technically enforced (INST-001), and the stated purpose must be consistent with the actual instructions, tools, data and actions (INST-004).</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>The SKU suppression rule is a disclosure control expressed only as text, and the model can be argued out of it. More materially, the mismatch between documented and actual configuration shows the agent was published without the configuration being reconciled: an action description points at an artefact that is not attached, and the conversational boosting topic (SearchAndSummarizeContent) is Active against zero knowledge sources while isSemanticSearchEnabled is true and useModelKnowledge is false.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Unreliable output filtering, incorrect or incomplete license translation for any SKU outside the 8 hard-coded entries, and a configuration that cannot be reliably reviewed because its documentation does not match reality.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Enforce SKU filtering in the flow&#x27;s response mapping rather than in prose. Either attach m365_skus.xlsx as a governed knowledge source or remove the stale reference from the action description. Remove or repoint the Conversational boosting topic given there are no knowledge sources attached.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Confirm SKU IDs are stripped by the flow even when the model is asked directly for them; confirm no instruction references a non-existent artefact; re-run INST-001 and INST-004.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding warn">
+  <div class="fhead">
+    <div class="fid">OUT-004</div>
+    <div class="fname">High-Risk Outputs Require Appropriate Controls</div>
+    <div class="fbadges"><span class="badge st-warn">WARNING</span> <span class="badge sev-med">Medium</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>Through the HR Agent, the chain produces an explicit employment judgement: &#x27;Provide a clear judgment on whether the candidate is qualified&#x27; and &#x27;You must always include if the candidate is qualified for the job description&#x27;. This output is generated autonomously on file creation and emailed without review.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Outputs involving employment decisions require additional review or controls appropriate to the context.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>The agent does not merely summarise - it renders a qualified/not-qualified determination that is transmitted to an administrator, making it an input to a consequential decision about an individual. No accuracy verification, reviewer sign-off or contest mechanism is configured.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>An inaccurate or injection-manipulated screening judgement could adversely affect a candidate, with no human checkpoint before the determination is circulated.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Reclassify the HR Agent output as a decision-support draft rather than a determination, require reviewer sign-off before distribution, and record that a human made the final decision.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Confirm no qualification determination is distributed without recorded human review; re-run OUT-004 and HUMAN-003.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>Medium</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">KNOW-003 / KNOW-005</div>
+    <div class="fname">User-Controlled Knowledge Must Be Treated as Untrusted</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-med">Medium</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>Two knowledge surfaces in the chain are modifiable by non-administrators or by external parties: the HR Agent&#x27;s SharePoint source https://m365cpi06134360.sharepoint.com/Shared%20Documents (a general document library, scoped at library root), and the OneDrive folder monitored by the &#x27;When a file is created&#x27; trigger, which by design receives third-party candidate files. The Trimble agent&#x27;s source is a public internet site not under organizational control.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Content modifiable by ordinary users or external parties must not be treated as trusted instructions, and where knowledge integrity is security-sensitive, modification must be controlled.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>This is the knowledge-poisoning precondition: whoever can write a document into the Shared Documents library, or drop a file into the watched OneDrive folder, can place text into the agent&#x27;s reasoning context. Because the parent agent holds Entra write and mailbox tooling, poisoned knowledge is not merely a content-accuracy problem.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Manipulated recommendations, disclosure of other content in the library, or coerced tool invocation originating from a document that an ordinary user or an external candidate authored.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Narrow the HR knowledge source from the library root to a dedicated, permission-restricted folder; restrict write access to the monitored OneDrive folder; and treat all retrieved content as data rather than instruction by separating retrieved text from the instruction channel in the prompt design.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Confirm the knowledge source path is scoped and that write access is restricted to an approved group; re-run KNOW-002, KNOW-003 and KNOW-005.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>Medium</p></div>
+  </div>
+</div>
+<div class="finding fail">
+  <div class="fhead">
+    <div class="fid">CFG-002 / CFG-003</div>
+    <div class="fname">Security-Sensitive Changes Must Be Controlled / Material Changes Trigger Reassessment</div>
+    <div class="fbadges"><span class="badge st-fail">FAIL</span> <span class="badge sev-med">Medium</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>The agent is Unmanaged (ismanaged: false) and resides in solutionid fd140aae-4df4-11dd-bd17-0019b9312238, the Default solution. It was created at 22:29:05, published at 22:32:58 and modified again at 22:48:12 on the same day - i.e. it was modified after publication. iscustomizable is False but CanBeChanged is true. Leftover development artefacts remain: a topic literally named &#x27;test&#x27; (a CSAT/rating adaptive card), and an Inactive &#x27;Service now catalog&#x27; topic (statecode 1).</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Security-relevant configuration changes should follow change management, and material changes should trigger reassessment before publication (CFG-002, CFG-003).</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>Living in the Default solution as an unmanaged component means there is no ALM boundary, no versioned deployment path and no controlled promotion between environments - any maker in the environment can alter connectors, instructions or actions and republish. Publication within roughly three and a half minutes of creation, followed by further modification, indicates no security review preceded publication. The residual &#x27;test&#x27; and inactive ServiceNow topics show the agent has not been cleaned for release.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Undetected, unreviewed change to a privileged agent; inability to reproduce or roll back a known-good configuration; reintroduction of risk after this assessment.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Move the agent into a dedicated, versioned solution and promote it through managed deployment. Remove the &#x27;test&#x27; topic and delete (not merely deactivate) the unused &#x27;Service now catalog&#x27; topic. Require security reassessment on any new connector, permission, data source, external integration, user population or autonomous capability.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Confirm the agent is packaged in a named non-default solution and deployed as managed; confirm the test and ServiceNow topics are removed; re-run CFG-002 and CFG-003.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>Medium</p></div>
+  </div>
+</div>
+<div class="finding insuf">
+  <div class="fhead">
+    <div class="fid">MON-001 / MON-002</div>
+    <div class="fname">Security-Relevant Actions Must Be Observable and Attributable</div>
+    <div class="fbadges"><span class="badge st-insuf">INSUFFICIENT EVIDENCE</span> <span class="badge sev-med">Medium</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>No monitoring, alerting, retention or audit configuration for this agent is retrievable from the available Dataverse evidence. What can be observed is that Maker-mode connections and embedded flow connections will record the maker as the executing identity for connector operations.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Agent invocation, user identity, connector execution, high-impact actions and configuration changes should be auditable, and privileged actions must be attributable to the initiating user.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>The control cannot be evaluated as PASS or FAIL because the evidence is not present in the inspected source - missing evidence is not treated as failure. However, the Maker-mode finding (IAM-007) gives positive evidence that attribution for connector-level actions is already degraded regardless of what monitoring exists.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Privileged actions - particularly Entra group modification and mailbox access - may not be traceable to the user who caused them, impeding detection and investigation.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Before publication, confirm and document: Copilot Studio analytics/transcript retention, Purview audit coverage for agent invocation, Entra ID audit for group-membership changes on group 42d2fdd2-f3de-4988-b61e-d40e578b8bc2, and Power Automate run-history retention for the three flows. Resolve IAM-007 so connector actions carry the end user&#x27;s identity.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Produce an audit record for a test group-add showing the initiating user, the agent, the executing identity and the affected object; re-run MON-001, MON-002 and MON-003.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding pass">
+  <div class="fhead">
+    <div class="fid">CFG-001 / IAM-001</div>
+    <div class="fname">Agent Configuration Must Have an Identifiable Owner / Agent Identity Identifiable</div>
+    <div class="fbadges"><span class="badge st-pass">PASS</span> <span class="badge sev-info">Informational</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>ownerid, owninguser and createdby all resolve to MOD Administrator (systemuser 0a7449d3-6b8c-f111-ab0e-6045bd09cc66); owningbusinessunit is orga49e3e3a. The agent has a registered application identity d3b7f5d7-2041-48c9-869b-e17a482aeacb which is available in the tenant, and the publish operation is attributed to user 3495b8a1-905e-4a4b-a487-5722e64d9e9f at 2026-09-17 22:32:58.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Every production-bound agent must have an identifiable identity and an accountable owner.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>Identity and record ownership are established and attributable at the agent level, so IAM-001 and CFG-001 are satisfied. Note this is a separate question from runtime attribution of connector actions, which is degraded by the Maker-mode configuration reported under IAM-007, and from governance ownership roles, which are addressed in the Governance section.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>No security risk identified for this control.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>No remediation required for this control. As hardening, record a named business owner, technical owner, security owner and data owner rather than relying on a shared administrator account.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Re-confirm ownerid resolves to a current, accountable owner at each periodic review.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>High</p></div>
+  </div>
+</div>
+<div class="finding warn">
+  <div class="fhead">
+    <div class="fid">DATA-005 / EXT-002</div>
+    <div class="fname">External Data Transfer Must Be Controlled</div>
+    <div class="fbadges"><span class="badge st-warn">WARNING</span> <span class="badge sev-med">Medium</span></div>
+  </div>
+  <div class="fbody">
+    <div class="field"><span class="lbl">Observed Evidence</span><p>Outbound paths exist to: Office 365 Outlook mailbox management (MCP, Maker mode), the billing MCP custom connector endpoint (host not established), Microsoft Learn Docs MCP (public Microsoft endpoint), and the Trimble Spectrum agent&#x27;s URL-fetch action against help.trimble.com. Inbound sensitive data includes directory license data, SharePoint project records, mailbox content and candidate personal data.</p></div>
+    <div class="field"><span class="lbl">Expected State</span><p>Sensitive data must not be sent to external services unless the destination and the transfer are authorized, and external destinations must be approved for the relevant data.</p></div>
+    <div class="field"><span class="lbl">Analysis</span><p>Microsoft Learn Docs MCP is a read-only public documentation search and presents low transfer risk. The billing MCP is the material concern because its endpoint, owner and data handling are not established in the evidence, and the URL-fetch action can be pointed at arbitrary URLs. This is rated WARNING rather than FAIL because the actual payloads transmitted cannot be determined from configuration metadata alone.</p></div>
+    <div class="field risk"><span class="lbl">Risk</span><p>Sensitive organizational or personal data could reach an unapproved third-party endpoint without a data-transfer agreement or DLP coverage.</p></div>
+    <div class="field rec"><span class="lbl">Recommendation</span><p>Enumerate and document every external destination and the data classes each receives. Apply a Power Platform DLP policy that separates the business-data connector group from external/unapproved connectors. Restrict the Trimble URL-fetch action to an allow-list of help.trimble.com paths.</p></div>
+    <div class="field"><span class="lbl">Validation</span><p>Confirm a DLP policy is enforced on this environment and that each external endpoint has an approved-integration record; re-run DATA-005, EXT-001 and EXT-002.</p></div>
+    <div class="field"><span class="lbl">Confidence</span><p>Medium</p></div>
+  </div>
+</div>
+</section>
+
+<section id="attack">
+  <h2>Attack Paths</h2><div class="rule"></div>
+  <p>These paths correlate weaknesses across identity, data access, instructions, knowledge, tools, external
+  communication and human oversight. Each describes a <strong>potential</strong> attack path derived from the
+  observed configuration. <strong>No evidence of an actual security incident was found, and none is claimed.</strong></p>
+  <div class="apath">
+  <h3>AP-1 &mdash; Indirect prompt injection to Entra ID privilege escalation <span class="badge sev-crit">Critical</span></h3>
+  <div class="chain"><div class="stage"><div class="stage-n">Entry Point</div><div class="stage-d">Attacker-authored content reaches the agent&#x27;s context: a poisoned page retrieved via the Trimble Spectrum agent&#x27;s public source (help.trimble.com) or its URL-fetch action, a document written into the SharePoint library reachable by search, or a file submitted while isFileAnalysisEnabled is true.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Attack Technique</div><div class="stage-d">Indirect prompt injection / instruction hijacking. The retrieved text is placed into the same context the model reasons over, with no trusted/untrusted separation configured.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Agent Behavior</div><div class="stage-d">GenerativeActionsEnabled: true allows the orchestrator to select a tool without a deterministic topic trigger. The injected text is interpreted as an instruction to perform an administrative task.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Capability</div><div class="stage-d">Action &#x27;add user to security group&#x27; -&gt; flow 0909de90-3472-f011-b4cb-7c1e520b6058 -&gt; Entra ID AddUserToGroup. The member email is an AutomaticTaskInput, so the model supplies it with no user confirmation; the azuread connection is embedded (maker).</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Target</div><div class="stage-d">Entra ID security group 42d2fdd2-f3de-4988-b61e-d40e578b8bc2.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Potential Impact</div><div class="stage-d">An attacker-controlled account gains whatever access that group confers. Because every agent in this environment gates access via accesscontrolpolicy &#x27;Group membership&#x27;, group manipulation can also widen access to other agents. The change is attributed to the maker, not the attacker.</div></div></div></div><div class="apath">
+  <h3>AP-2 &mdash; Autonomous file trigger to outbound email exfiltration <span class="badge sev-crit">Critical</span></h3>
+  <div class="chain"><div class="stage"><div class="stage-n">Entry Point</div><div class="stage-d">A third party uploads a file to the OneDrive for Business location monitored by the HR Agent&#x27;s &#x27;When a file is created&#x27; external trigger (flow 134b8eda-e277-f011-b4cb-7c1e520b6058).</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Attack Technique</div><div class="stage-d">Prompt injection embedded in an untrusted document, exploiting an autonomous trigger with no human in the loop between ingestion and action.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Agent Behavior</div><div class="stage-d">The HR Recruiting Agent is instructed to read the file, evaluate it, compose an email and send it - all in one uninterrupted sequence, with no approval node.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Capability</div><div class="stage-d">Office 365 Outlook Send an email (V2) with connectionProperties mode: Maker; plus a SharePoint knowledge source scoped at the root of https://m365cpi06134360.sharepoint.com/Shared%20Documents.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Target</div><div class="stage-d">The maker&#x27;s mailbox as sender; admin@M365CPI06134360.onmicrosoft.com as the fixed recipient; content of the Shared Documents library as potential payload.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Potential Impact</div><div class="stage-d">Attacker-influenced content is emailed automatically from an administrator&#x27;s mailbox. The fixed recipient is a significant mitigating control that prevents direct exfiltration to an external address, so the realistic impact is content manipulation and internal disclosure rather than outbound data theft - unless the recipient binding is later changed.</div></div></div></div><div class="apath">
+  <h3>AP-3 &mdash; Maker-mode confused deputy to mailbox and directory access <span class="badge sev-high">High</span></h3>
+  <div class="chain"><div class="stage"><div class="stage-n">Entry Point</div><div class="stage-d">Any user who can invoke the agent - a population that cannot be confirmed, since accesscontrolpolicy is &#x27;Group membership&#x27; but authorizedsecuritygroupids is empty.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Attack Technique</div><div class="stage-d">Confused deputy / privilege abuse. The user asks the agent to perform an operation they are not themselves authorized to perform.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Agent Behavior</div><div class="stage-d">The agent invokes the tool without re-authorizing against the caller&#x27;s own rights, because the connection identity is the maker rather than the invoker.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Capability</div><div class="stage-d">Office 365 Outlook Email Management MCP (mode: Maker), billing MCP (mode: Maker), and the app-only Graph call in flow 4b67d3a5-7469-f011-bec1-7c1e520b6058 which accepts any UPN.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Target</div><div class="stage-d">The maker&#x27;s (tenant administrator&#x27;s) mailbox, tenant-wide license/directory data, and billing data.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Potential Impact</div><div class="stage-d">A standard user reads or manipulates administrator mailbox content and enumerates directory license assignments for arbitrary employees, with all actions logged as the maker - defeating attribution.</div></div></div></div><div class="apath">
+  <h3>AP-4 &mdash; Credential theft to direct Graph access outside the agent <span class="badge sev-crit">Critical</span></h3>
+  <div class="chain"><div class="stage"><div class="stage-n">Entry Point</div><div class="stage-d">Read access to the workflow definition - available to makers in the environment, to anyone who can export the unmanaged Default solution, or to any identity with Dataverse read on the workflow table.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Attack Technique</div><div class="stage-d">Secret harvesting from configuration. No agent interaction is required at all.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Agent Behavior</div><div class="stage-d">Not applicable - the agent is bypassed entirely.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Capability</div><div class="stage-d">The plaintext client secret embedded in flow 4b67d3a5-7469-f011-bec1-7c1e520b6058 for clientId d3abaf28-0cbf-48a9-a4e1-154bf77ab9dd, tenant 1a2d00d3-eb2f-45c4-9a7f-7c8303e8401c, audience https://graph.microsoft.com.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Target</div><div class="stage-d">Microsoft Graph, with whatever application permissions that app registration holds.</div></div><div class="arrow">&#9660;</div><div class="stage"><div class="stage-n">Potential Impact</div><div class="stage-d">Persistent, unattributable tenant access independent of Copilot Studio, surviving any remediation applied to the agent itself. This path is why the secret must be rotated before, not after, other fixes.</div></div></div></div>
+  <div class="callout"><strong>Correlation note (ATT-001):</strong> the baseline requires that high-risk capability
+  combinations be evaluated together rather than as isolated controls. Four such combinations are present
+  simultaneously here: <em>untrusted content + privileged tool</em>, <em>sensitive data + external connector</em>,
+  <em>broad users + administrative permissions</em>, and <em>autonomous action + external communication</em>.</div>
+</section>
+
+<section id="compliance">
+  <h2>Compliance Considerations</h2><div class="rule"></div>
+  <p>These are obligations that <em>may</em> apply based on the agent's purpose, data, users and environment. This
+  assessment identifies the relevant questions; it does not independently classify the agent under any specific law or
+  regulation, which requires legal review.</p>
+  <table><thead><tr><th>Area</th><th>Observed Basis</th><th>Consideration</th></tr></thead>
+  <tbody><tr><td><strong>Personal data / employee and candidate information</strong></td><td>The chain processes candidate resumes (HR Agent, via OneDrive trigger), employee UPNs and license assignments (Graph), employee directory profile data (Office365Users UserProfile_V2), and Entra group membership. Compliance Knowledge lists employment information among categories warranting heightened scrutiny.</td><td>Confirm the lawful basis and notice for processing candidate and employee personal data through an AI agent; confirm data-subject rights (access, correction, objection) can be honoured for agent-processed content.</td></tr><tr><td><strong>Automated decision-making affecting individuals</strong></td><td>The HR Agent renders an explicit qualified / not-qualified employment determination and transmits it automatically. Compliance Knowledge identifies employment and hiring among decisions where automated decision-making obligations may apply, and lists employment decisions as a high-risk AI use case.</td><td>Determine whether this constitutes automated decision-making or decision support under applicable law; ensure meaningful human involvement before any determination influences a hiring outcome; document accuracy expectations and a contest/appeal route. Note the assessment does not independently classify the system under any specific statute - that determination requires legal review.</td></tr><tr><td><strong>Third-party data transfer</strong></td><td>The billing MCP custom connector (af300692-6839-49af-b4b0-f58c76e8267c) has no established owner, endpoint or data-handling terms in the available evidence, and the Trimble URL-fetch action reaches an external public site.</td><td>Establish the destination, contractual terms and approved data-transfer architecture for each external endpoint before publication, and confirm DLP coverage for this environment.</td></tr><tr><td><strong>Retention</strong></td><td>No retention configuration for conversation transcripts, flow run history or the candidate files processed by the OneDrive trigger is retrievable from the available evidence.</td><td>Define and document retention and deletion for agent transcripts and for candidate personal data, balancing minimisation against any legal retention obligation.</td></tr><tr><td><strong>Confidentiality of business data</strong></td><td>Billing data, SharePoint project records (project details, requestor, approver, status) and mailbox content are all in scope.</td><td>Confirm each data class is approved for the agent&#x27;s user population and for every external destination in the chain.</td></tr></tbody></table>
+</section>
+
+<section id="governance">
+  <h2>Governance Considerations</h2><div class="rule"></div>
+  <table><thead><tr><th>Dimension</th><th>Observed</th><th>Recommended</th></tr></thead>
+  <tbody><tr><td><strong>Ownership</strong></td><td>Record ownership is established - ownerid and createdby both resolve to MOD Administrator (0a7449d3-6b8c-f111-ab0e-6045bd09cc66), owning business unit orga49e3e3a. However, Governance Knowledge distinguishes business, technical, security and data owners, and warns against assuming the creator is the long-term owner. A single shared tenant-administrator account currently fills every role.</td><td>Assign and record named business, technical, security and data owners before publication.</td></tr><tr><td><strong>Approval</strong></td><td>No approval or security sign-off record is retrievable. The agent was created at 22:29:05 and published at 22:32:58 on 2026-09-17 - approximately three and a half minutes - and then modified again at 22:48:12, after publication.</td><td>Require documented security approval appropriate to this agent&#x27;s risk (it holds directory-write and mailbox capability) before it is published or republished.</td></tr><tr><td><strong>Change management</strong></td><td>The agent is Unmanaged and sits in the Default solution (fd140aae-4df4-11dd-bd17-0019b9312238), so there is no ALM boundary or controlled promotion path. Post-publication modification has already occurred.</td><td>Move to a dedicated versioned solution with managed deployment; require change review for any new connector, permission, data source, external integration, user population or autonomous capability (CFG-003).</td></tr><tr><td><strong>Monitoring</strong></td><td>Monitoring configuration is not retrievable, and Maker-mode connections degrade attribution regardless of what monitoring exists.</td><td>Establish and document audit coverage for agent invocation, connector execution and Entra group changes; resolve the Maker-mode identity issue so actions are attributable to the invoking user.</td></tr><tr><td><strong>Periodic review</strong></td><td>No review cadence or reassessment record is retrievable. Governance Knowledge notes that higher-risk agents may require more frequent review.</td><td>Set a review cadence proportionate to the agent&#x27;s privilege - given Entra write and mailbox access, a short cadence is appropriate - and record the next review date.</td></tr><tr><td><strong>Lifecycle hygiene</strong></td><td>Development artefacts remain in the published configuration: a topic named &#x27;test&#x27; (a CSAT rating card) and an Inactive &#x27;Service now catalog&#x27; topic (statecode 1). 11 Test Case components are also present.</td><td>Remove development and unused components before publication; retire the ServiceNow topic rather than leaving it deactivated.</td></tr></tbody></table>
+</section>
+
+<section id="actions">
+  <h2>Recommended Actions</h2><div class="rule"></div>
+  <p>Ordered by the baseline's remediation preference:
+  <strong>remove unnecessary capability &rarr; reduce permissions &rarr; restrict data access &rarr;
+  strengthen authorization &rarr; add human approval &rarr; add monitoring</strong>.</p>
+  <table><thead><tr><th>#</th><th>Action</th><th>Priority</th><th>Controls</th><th>Specific Change</th></tr></thead>
+  <tbody><tr><td class='num'>1</td><td><strong>Rotate and remove the embedded client secret</strong></td><td><span class="badge sev-crit">Critical</span></td><td class='mono'>SEC-001 / DATA-006</td><td>Revoke the secret on app registration d3abaf28-0cbf-48a9-a4e1-154bf77ab9dd, remove the inline authentication block from flow 4b67d3a5-7469-f011-bec1-7c1e520b6058, and replace it with a Key Vault reference or a connection reference. Review Graph sign-in logs for that appId. Do this first - it is exploitable without touching the agent.</td></tr><tr><td class='num'>2</td><td><strong>Gate or remove the Entra ID group-write capability</strong></td><td><span class="badge sev-crit">Critical</span></td><td class='mono'>IAM-005 / HUMAN-002</td><td>Change the &#x27;email&#x27; parameter from AutomaticTaskInput to a confirmed input, add an approval step before AddUserToGroup, apply a target-group and requestor allow-list, and switch the azuread connection from embedded to invoker.</td></tr><tr><td class='num'>3</td><td><strong>Break the untrusted-content-to-privileged-tool chain</strong></td><td><span class="badge sev-crit">Critical</span></td><td class='mono'>ATT-001 / PI-002</td><td>Separate external knowledge ingestion from privileged action. Either remove the group-write and mailbox tools from this agent, or remove the external/public content sources, or place enforced approval between them.</td></tr><tr><td class='num'>4</td><td><strong>Add human approval before the HR Agent sends email</strong></td><td><span class="badge sev-crit">Critical</span></td><td class='mono'>PI-002 / HUMAN-002</td><td>Insert a reviewer checkpoint between candidate analysis and transmission; constrain the email body to a bounded template; keep the fixed recipient.</td></tr><tr><td class='num'>5</td><td><strong>Eliminate Maker-mode connections</strong></td><td><span class="badge sev-high">High</span></td><td class='mono'>IAM-007 / SEC-004</td><td>Switch Office 365 Outlook Email Management MCP, billing MCP, Microsoft Learn Docs MCP and the HR Agent&#x27;s Send an email V2 to invoker/end-user authentication, or to a dedicated least-privilege service principal that is not a tenant administrator.</td></tr><tr><td class='num'>6</td><td><strong>Enforce delegated authorization on the Graph license lookup</strong></td><td><span class="badge sev-high">High</span></td><td class='mono'>IAM-004 / DATA-003</td><td>Use a delegated connection or resolve the caller&#x27;s UPN server-side; remove the free-form &#x27;text&#x27; trigger parameter so arbitrary UPNs cannot be queried.</td></tr><tr><td class='num'>7</td><td><strong>Bind and verify the agent&#x27;s authorized security group</strong></td><td><span class="badge sev-high">High</span></td><td class='mono'>IAM-006 / DEF-001</td><td>Confirm which security groups are bound in Copilot Studio; populate authorizedsecuritygroupids with a named administrator group and document the justification.</td></tr><tr><td class='num'>8</td><td><strong>Establish trust for the billing MCP server</strong></td><td><span class="badge sev-high">High</span></td><td class='mono'>TOOL-005 / KNOW-002</td><td>Document publisher, endpoint, authentication and full tool inventory; remove the &#x27;call as many of its tools as needed&#x27; instruction; replace triggerCondition: true with a scoped condition.</td></tr><tr><td class='num'>9</td><td><strong>Constrain the SharePoint search parameter</strong></td><td><span class="badge sev-med">Medium</span></td><td class='mono'>TOOL-004</td><td>Validate and escape the querytext value and apply a server-side scope filter; retain runtimeSource &#x27;invoker&#x27;.</td></tr><tr><td class='num'>10</td><td><strong>Scope agent-to-agent data sharing</strong></td><td><span class="badge sev-med">Medium</span></td><td class='mono'>A2A-004</td><td>Replace ConversationHistory with scoped input contracts for all three connected agents; align the SPO agent&#x27;s authenticationtrigger to &#x27;Always&#x27;; obtain its tool inventory.</td></tr><tr><td class='num'>11</td><td><strong>Reconcile instructions with actual configuration</strong></td><td><span class="badge sev-med">Medium</span></td><td class='mono'>INST-001 / INST-004</td><td>Enforce SKU suppression in the flow rather than in prose; attach or remove the m365_skus.xlsx reference; repoint or remove the Conversational boosting topic.</td></tr><tr><td class='num'>12</td><td><strong>Scope knowledge sources and monitored folders</strong></td><td><span class="badge sev-med">Medium</span></td><td class='mono'>KNOW-003 / KNOW-005</td><td>Narrow the HR SharePoint source from library root to a restricted folder; restrict write access to the monitored OneDrive folder.</td></tr><tr><td class='num'>13</td><td><strong>Apply ALM and clean up development artefacts</strong></td><td><span class="badge sev-med">Medium</span></td><td class='mono'>CFG-002 / CFG-003</td><td>Move the agent out of the Default solution into a dedicated versioned managed solution; remove the &#x27;test&#x27; topic and the inactive &#x27;Service now catalog&#x27; topic.</td></tr><tr><td class='num'>14</td><td><strong>Confirm monitoring and audit coverage</strong></td><td><span class="badge sev-med">Medium</span></td><td class='mono'>MON-001 / MON-002</td><td>Document transcript retention, Purview audit coverage, Entra group-change auditing for group 42d2fdd2-f3de-4988-b61e-d40e578b8bc2, and flow run-history retention.</td></tr><tr><td class='num'>15</td><td><strong>Complete governance and compliance records</strong></td><td><span class="badge sev-med">Medium</span></td><td class='mono'>CFG-001 / Compliance</td><td>Record named business/technical/security/data owners, obtain documented security approval, set a review cadence, and complete the automated-decision and personal-data assessments for the HR path.</td></tr></tbody></table>
+</section>
+
+<section id="status">
+  <h2>Pre-Publication Status</h2><div class="rule"></div>
+  <div class="verdict">
+    <p class="vt">NOT APPROVED FOR PUBLICATION</p>
+    <p style="margin:0">Remediate Critical findings, and remediate or obtain documented security approval for High
+    findings, before this agent is published or republished.</p>
+  </div>
+  <table><thead><tr><th>Severity</th><th>Count</th><th>Baseline Gate Policy</th><th>Outcome</th></tr></thead>
+  <tbody>
+    <tr><td><span class="badge sev-crit">Critical</span></td><td class="num">3</td>
+        <td>Require remediation before publication unless an explicitly authorized exception exists.</td>
+        <td><strong>Blocking</strong></td></tr>
+    <tr><td><span class="badge sev-high">High</span></td><td class="num">5</td>
+        <td>Require remediation or documented security approval.</td><td><strong>Blocking</strong></td></tr>
+    <tr><td><span class="badge sev-med">Medium</span></td><td class="num">8</td>
+        <td>Require remediation, risk acceptance, or documented justification per organizational policy.</td>
+        <td>Decision required</td></tr>
+    <tr><td><span class="badge sev-info">Informational</span></td><td class="num">1</td>
+        <td>May be addressed through normal hardening processes.</td><td>Monitor</td></tr>
+  </tbody></table>
+  <h3>Risk Disposition</h3>
+  <p><strong>Risk eliminated:</strong> none yet &mdash; no remediation has been applied at the time of assessment.<br>
+  <strong>Risk mitigated:</strong> partially, by Integrated authentication with an &ldquo;Always&rdquo; trigger, High
+  content moderation, the invoker-identity SharePoint flow, and the pinned HR email recipient.<br>
+  <strong>Risk accepted:</strong> none recorded &mdash; no approved exception or risk-acceptance record was found.<br>
+  <strong>Risk unresolved:</strong> all Critical and High findings listed above.</p>
+  <div class="callout"><strong>Authority note:</strong> this assessment reports findings and the applicable gate
+  policy. It does not independently accept organizational risk or approve exceptions. Decisions on risk acceptance
+  rest with the accountable owner and the organization's security approver.</div>
+  <h3>Re-Test Guidance</h3>
+  <p>After remediation, re-retrieve the current agent configuration and re-run the affected controls rather than
+  assuming any finding persists or is resolved. Material changes &mdash; a new connector, permission, data source,
+  external integration, user population or autonomous capability &mdash; should trigger a fresh assessment under
+  CFG-003.</p>
+</section>
+
+</main>
+<footer>
+  <p>Generated by the Guardrail Agent pre-publication security gate. All findings are derived from the agent's actual
+  Dataverse configuration observed on 2026-09-17. Credential values are intentionally redacted. Statements are
+  separated into observed configuration, analysis, potential attack paths and recommendations; no confirmed security
+  incident is asserted.</p>
+</footer>
+</body></html>
